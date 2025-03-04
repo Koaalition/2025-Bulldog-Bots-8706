@@ -22,6 +22,9 @@ from rev import SparkBase, SparkBaseConfig, ClosedLoopConfig
 class NeoMotorConstants:
     kFreeSpeedRpm = 5676
 
+class MotorCanId:
+    motorCanId = 10
+
 
 class DriveConstants:
     # Driving Parameters - Note that these are not the maximum capable speeds of

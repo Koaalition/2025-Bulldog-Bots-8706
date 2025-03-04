@@ -14,7 +14,7 @@ from wpimath.controller import PIDController, ProfiledPIDControllerRadians, Holo
 from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 from wpimath.trajectory import TrajectoryConfig, TrajectoryGenerator
 
-from constants import AutoConstants, DriveConstants, OIConstants
+from constants import AutoConstants, DriveConstants, OIConstants, MotorCanId
 from subsystems.drivesubsystem import DriveSubsystem
 from subsystems.motor import Motor
 
@@ -29,7 +29,7 @@ class RobotContainer:
     """
 
     def __init__(self) -> None:
-        self.motor = Motor(10)
+        self.motor = Motor(MotorCanId.motorCanId)
 
         # The robot's subsystems
         self.robotDrive = DriveSubsystem()
