@@ -20,7 +20,7 @@ from rev import SparkBase, SparkBaseConfig, ClosedLoopConfig
 
 
 class NeoMotorConstants:
-    kFreeSpeedRpm = 5676
+    kFreeSpeedRpm = 6784
 
 class MotorCanId:
     motorCanId = 10
