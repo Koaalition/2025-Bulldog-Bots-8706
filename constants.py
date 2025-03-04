@@ -110,17 +110,12 @@ class ModuleConstants:
     kTurningEncoderInverted = False
     kTurningMotorInverted = True
 
-    # The MAXSwerve module can be configured with one of three pinion gears: 12T, 13T, or 14T.
-    # This changes the drive speed of the module (a pinion gear with more teeth will result in a
-    # robot that drives faster).
-    kDrivingMotorPinionTeeth = 14
-
     # Calculations required for driving motor conversion factors and feed forward
     kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60
-    kWheelDiameterMeters = 0.0762
+    kWheelDiameterMeters = 0.1016
     kWheelCircumferenceMeters = kWheelDiameterMeters * math.pi
-    # 45 teeth on the wheel's bevel gear, 22 teeth on the first-stage spur gear, 15 teeth on the bevel pinion
-    kDrivingMotorReduction = (45.0 * 22) / (kDrivingMotorPinionTeeth * 15)
+
+    kDrivingMotorReduction = 6.75
     kDriveWheelFreeSpeedRps = (
         kDrivingMotorFreeSpeedRps * kWheelCircumferenceMeters
     ) / kDrivingMotorReduction
