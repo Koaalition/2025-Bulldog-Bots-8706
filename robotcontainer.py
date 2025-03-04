@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import math
 
 import commands2
@@ -15,6 +16,7 @@ from wpimath.trajectory import TrajectoryConfig, TrajectoryGenerator
 
 from constants import AutoConstants, DriveConstants, OIConstants
 from subsystems.drivesubsystem import DriveSubsystem
+from subsystems.motor import Motor
 
 from commands.reset_xy import ResetXY, ResetSwerveFront
 
@@ -27,6 +29,8 @@ class RobotContainer:
     """
 
     def __init__(self) -> None:
+        self.motor = Motor(10)
+
         # The robot's subsystems
         self.robotDrive = DriveSubsystem()
 
@@ -60,12 +64,25 @@ class RobotContainer:
             )
         )
 
+        self.motor.setDefaultCommand(
+            commands2.RunCommand(
+                lambda: self.motor.setSpeed(
+                    self.driverController.getRightTriggerAxis() -
+                    self.driverController.getLeftTriggerAxis()
+                ),
+                self.motor
+            )
+        )
+
     def configureButtonBindings(self) -> None:
         """
         Use this method to define your button->command mappings. Buttons can be created by
         instantiating a :GenericHID or one of its subclasses (Joystick or XboxController),
         and then passing it to a JoystickButton.
         """
+
+        from commands2.button import JoystickButton
+        from commands2 import RunCommand
 
         xButton = JoystickButton(self.driverController, XboxController.Button.kX)
         xButton.onTrue(ResetXY(x=0.0, y=0.0, headingDegrees=0.0, drivetrain=self.robotDrive))

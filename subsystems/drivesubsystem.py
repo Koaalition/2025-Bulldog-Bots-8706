@@ -27,7 +27,6 @@ class DriveSubsystem(Subsystem):
         super().__init__()
 
         enabledChassisAngularOffset = 0 if DriveConstants.kAssumeZeroOffsets else 1
-
         # Create MAXSwerveModules
         self.frontLeft = MAXSwerveModule(
             DriveConstants.kFrontLeftDrivingCanId,

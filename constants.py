@@ -34,9 +34,9 @@ class DriveConstants:
     kRotationalSlewRate = 2.0  # percent per second (1 = 100%)
 
     # Chassis configuration
-    kTrackWidth = units.inchesToMeters(26.5)
+    kTrackWidth = units.inchesToMeters(25.5)
     # Distance between centers of right and left wheels on robot
-    kWheelBase = units.inchesToMeters(26.5)
+    kWheelBase = units.inchesToMeters(22.25)
 
     # Distance between front and back wheels on robot
     kModulePositions = [
@@ -104,7 +104,7 @@ class ModuleConstants:
     # WATCH OUT:
     #  - one or both of two constants below need to be flipped from True to False (by trial and error)
     #  , depending which swerve module you have (MK4i, MK4n, Rev, WCP, ThriftyBot, etc)
-    kTurningEncoderInverted = True
+    kTurningEncoderInverted = False
     kTurningMotorInverted = True
 
     # The MAXSwerve module can be configured with one of three pinion gears: 12T, 13T, or 14T.
