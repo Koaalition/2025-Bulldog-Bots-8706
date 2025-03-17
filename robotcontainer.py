@@ -29,13 +29,23 @@ class RobotContainer:
     """
 
     def __init__(self) -> None:
+
         self.motor = Motor(MotorCanId.motorCanId)
+
+        from rev import SparkFlex
+        from subsystems.elevator import Elevator
+        self.elevator = Elevator(leadMotorCANId=12, presetSwitchPositions=(0, 10), motorClass=SparkFlex)
+
+        self.elevator.setDefaultCommand(
+                commands2.RunCommand(lambda: self.elevator.drive(self.justinController.getRawAxis(XboxController.Axis.kRightY)), self.elevator)
+        )
 
         # The robot's subsystems
         self.robotDrive = DriveSubsystem()
 
         # The driver's controller
-        self.driverController = wpilib.XboxController(OIConstants.kDriverControllerPort)
+        self.driverController = wpilib.XboxController(0)
+        self.justinController = wpilib.XboxController(1)
 
         # Configure the button bindings and autos
         self.configureButtonBindings()
@@ -67,8 +77,8 @@ class RobotContainer:
         self.motor.setDefaultCommand(
             commands2.RunCommand(
                 lambda: self.motor.setSpeed(
-                    self.driverController.getRightTriggerAxis() -
-                    self.driverController.getLeftTriggerAxis()
+                    -0.20 * (self.driverController.getRightTriggerAxis() -
+                    self.driverController.getLeftTriggerAxis())
                 ),
                 self.motor
             )
