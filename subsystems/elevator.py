@@ -22,10 +22,10 @@ class ElevatorConstants:
     # other settings
     leadMotorInverted = True
     followMotorInverted = False
-    findingZeroSpeed = 0.1
+    findingZeroSpeed = 0.2
 
     # calibrating? (at first, set it =True and calibrate all the constants above)
-    calibrating = True
+    calibrating = False
 
     # to calibrate, set calibrating = True and add this in robotcontainer.py __init__(...) function
     # self.elevator.setDefaultCommand(
@@ -33,8 +33,9 @@ class ElevatorConstants:
     # )
 
     # which range of motion we want from this elevator? (inside what's allowed by limit switches)
-    minPositionGoal = 0.5  # inches
-    maxPositionGoal = 32  # inches
+    minPositionGoal = 3  # inches
+    maxPositionGoal = 15  # inches
+    startingPositionGoal = 8  # all the way above
     positionTolerance = 0.2  # inches
 
     # if we have an arm, what is the minimum and maximum safe angle for elevator to move
@@ -43,7 +44,7 @@ class ElevatorConstants:
     maxArmSafeAngleDegrees = 80
 
     # PID configuration (after you are done with calibrating=True)
-    kP = 0.02  # at first make it very small like this, then start tuning by increasing from there
+    kP = 0.5  # at first make it very small like this, then start tuning by increasing from there
     kD = 0.0  # at first start from zero, and when you know your kP you can start increasing kD from some small value >0
     kStaticGain = 0  # make it 3.5?
     kMaxOutput = 1.0
@@ -92,7 +93,7 @@ class Elevator(Subsystem):
             leadMotorConfig,
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters)
-        self.forwardLimit = self.leadMotor.getForwardLimitSwitch()
+        self.forwardLimit = None  # self.leadMotor.getForwardLimitSwitch()
         self.reverseLimit = self.leadMotor.getReverseLimitSwitch()
 
         if followMotorCANId is not None:
@@ -203,12 +204,12 @@ class Elevator(Subsystem):
         if ElevatorConstants.calibrating or self.unsafeToMove:
             return
         # did we find the zero just now?
-        if self.reverseLimit.get() and not self.forwardLimit.get():
+        if self.reverseLimit.get():
             self.zeroFound = True
             self.leadMotor.set(0)  # zero setpoint now
             self.relativeEncoder.setPosition(0.0)  # reset the relative encoder
             self.pidController = self.leadMotor.getClosedLoopController()
-            self.setPositionGoal(ElevatorConstants.minPositionGoal)
+            self.setPositionGoal(ElevatorConstants.startingPositionGoal)
             return
         # otherwise, continue finding it
         self.leadMotor.set(-ElevatorConstants.findingZeroSpeed)
@@ -217,7 +218,7 @@ class Elevator(Subsystem):
     def getState(self) -> str:
         if self.unsafeToMove:
             return self.unsafeToMove
-        if self.forwardLimit.get():
+        if self.forwardLimit is not None and self.forwardLimit.get():
             return "forward limit" if not self.reverseLimit.get() else "both limits (CAN disconn?)"
         if self.reverseLimit.get():
             return "reverse limit"
@@ -267,7 +268,7 @@ def _getLeadMotorConfig(
     config = SparkBaseConfig()
     config.inverted(inverted)
     config.setIdleMode(SparkBaseConfig.IdleMode.kBrake)
-    config.limitSwitch.forwardLimitSwitchEnabled(True)
+    config.limitSwitch.forwardLimitSwitchEnabled(False)
     config.limitSwitch.reverseLimitSwitchEnabled(True)
     config.limitSwitch.forwardLimitSwitchType(LimitSwitchConfig.Type.kNormallyOpen)  # because we don't have it on this robot
     config.limitSwitch.reverseLimitSwitchType(limitSwitchType)
