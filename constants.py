@@ -30,11 +30,11 @@ class DriveConstants:
     # Driving Parameters - Note that these are not the maximum capable speeds of
     # the robot, rather the allowed maximum speeds
     kMaxSpeedMetersPerSecond = 4.8
-    kMaxAngularSpeed = math.tau  # radians per second
+    kMaxAngularSpeed = 2 * math.tau  # radians per second
 
-    kDirectionSlewRate = 1.2  # radians per second
-    kMagnitudeSlewRate = 1.8  # percent per second (1 = 100%)
-    kRotationalSlewRate = 2.0  # percent per second (1 = 100%)
+    kDirectionSlewRate = 2.4  # radians per second
+    kMagnitudeSlewRate = 3.6  # percent per second (1 = 100%)
+    kRotationalSlewRate = 4.0  # percent per second (1 = 100%)
 
     # Chassis configuration
     kTrackWidth = units.inchesToMeters(25.5)
@@ -60,15 +60,15 @@ class DriveConstants:
     kBackRightChassisAngularOffset = math.pi / 2
 
     # SPARK MAX CAN IDs
-    kFrontLeftDrivingCanId = 1
-    kRearLeftDrivingCanId = 2
-    kFrontRightDrivingCanId = 3
-    kRearRightDrivingCanId = 4
+    kRearRightDrivingCanId = 1
+    kFrontRightDrivingCanId = 2
+    kRearLeftDrivingCanId = 3
+    kFrontLeftDrivingCanId = 4
 
-    kFrontLeftTurningCanId = 5
-    kRearLeftTurningCanId = 6
-    kFrontRightTurningCanId = 7
-    kRearRightTurningCanId = 8
+    kRearRightTurningCanId = 5
+    kFrontRightTurningCanId = 6
+    kRearLeftTurningCanId = 7
+    kFrontLeftTurningCanId = 8
 
     kGyroReversed = -1  # can be +1 if not flipped (affects field-relative driving)
 

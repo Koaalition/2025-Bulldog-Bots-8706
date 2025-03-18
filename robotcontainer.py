@@ -29,7 +29,10 @@ class RobotContainer:
     """
 
     def __init__(self) -> None:
-
+        def __init__(self) -> None:
+            # The robot's subsystems
+            from subsystems.limelight_camera import LimelightCamera
+            self.camera = LimelightCamera("limelight-pickup")  # name of your camera goes in parentheses
         self.motor = Motor(MotorCanId.motorCanId)
 
         from rev import SparkFlex
@@ -101,6 +104,9 @@ class RobotContainer:
         yButton = JoystickButton(self.driverController, XboxController.Button.kY)
         yButton.onTrue(ResetSwerveFront(self.robotDrive))
 
+        bButton = JoystickButton(self.driverController, XboxController.Button.kB)
+        bButton.whileTrue(self.approachAprilTagInSight())
+
     def disablePIDSubsystems(self) -> None:
         """Disables all ProfiledPIDSubsystem and PIDSubsystem instances.
         This should be called on robot disable to prevent integral windup."""
@@ -119,6 +125,27 @@ class RobotContainer:
         self.chosenAuto.addOption("left blue", self.getAutonomousLeftBlue)
         self.chosenAuto.addOption("left red", self.getAutonomousLeftRed)
         wpilib.SmartDashboard.putData("Chosen Auto", self.chosenAuto)
+
+    def approachAprilTagInSight(self):
+        from commands.approach import ApproachTag
+
+        def roundToMultipleOf60():
+            return 60 * round(self.robotDrive.getHeading().degrees() / 60)
+
+        approach = ApproachTag(
+            self.camera,
+            self.robotDrive,
+            specificHeadingDegrees=roundToMultipleOf60,
+            speed=1.0,
+            pushForwardSeconds=0.05,
+            finalApproachObjSize=8,
+        )  # tuning this at speed=0.5, should be comfortable setting speed=1.0 instead
+
+        # or you can do this, if you want to score the coral 15 centimeters to the right and two centimeters back from the AprilTag
+        # stepToSide = SwerveToSide(drivetrain=self.robotDrive, metersToTheLeft=-0.15, metersBackwards=0.02, speed=0.2)
+        # alignToScore = approach.andThen(stepToSide)
+
+        return approach
 
     def getAutonomousLeftBlue(self):
         setStartPose = ResetXY(x=0.783, y=6.686, headingDegrees=+60, drivetrain=self.robotDrive)

@@ -2,4 +2,5 @@ robotpy==2025.3.1.1
 robotpy-commands-v2
 robotpy-rev
 robotpy-navx
-wpilib==2025.3.1
+wpilib
+pyntcore
