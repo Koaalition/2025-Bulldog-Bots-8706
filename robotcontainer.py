@@ -7,7 +7,7 @@ import wpimath
 import wpilib
 import typing
 
-from commands2 import cmd, InstantCommand, RunCommand
+from commands2 import cmd, InstantCommand, RunCommand, SequentialCommandGroup
 from commands2.button import JoystickButton
 from wpilib import XboxController
 from wpimath.controller import PIDController, ProfiledPIDControllerRadians, HolonomicDriveController
@@ -29,10 +29,10 @@ class RobotContainer:
     """
 
     def __init__(self) -> None:
-        def __init__(self) -> None:
-            # The robot's subsystems
-            from subsystems.limelight_camera import LimelightCamera
-            self.camera = LimelightCamera("limelight-pickup")  # name of your camera goes in parentheses
+
+        # The robot's subsystems
+        from subsystems.limelight_camera import LimelightCamera
+        self.camera = LimelightCamera("limelight")  # name of your camera goes in parentheses
         self.motor = Motor(MotorCanId.motorCanId)
 
         from rev import SparkFlex
@@ -60,10 +60,10 @@ class RobotContainer:
             # Turning is controlled by the X axis of the right stick.
             commands2.RunCommand(
                 lambda: self.robotDrive.drive(
-                    -wpimath.applyDeadband(
+                    wpimath.applyDeadband(
                         self.driverController.getLeftY(), OIConstants.kDriveDeadband
                     ),
-                    -wpimath.applyDeadband(
+                    wpimath.applyDeadband(
                         self.driverController.getLeftX(), OIConstants.kDriveDeadband
                     ),
                     -wpimath.applyDeadband(
@@ -98,14 +98,14 @@ class RobotContainer:
         from commands2 import RunCommand
 
         xButton = JoystickButton(self.driverController, XboxController.Button.kX)
-        xButton.onTrue(ResetXY(x=0.0, y=0.0, headingDegrees=0.0, drivetrain=self.robotDrive))
+        xButton.onTrue(ResetXY(x=7.0, y=4.025, headingDegrees=180.0, drivetrain=self.robotDrive))
         xButton.whileTrue(RunCommand(self.robotDrive.setX, self.robotDrive))  # use the swerve X brake when "X" is pressed
 
         yButton = JoystickButton(self.driverController, XboxController.Button.kY)
         yButton.onTrue(ResetSwerveFront(self.robotDrive))
 
         bButton = JoystickButton(self.driverController, XboxController.Button.kB)
-        bButton.whileTrue(self.approachAprilTagInSight())
+        bButton.whileTrue(self.approachAprilTagAndShoot(pipeline=0))
 
     def disablePIDSubsystems(self) -> None:
         """Disables all ProfiledPIDSubsystem and PIDSubsystem instances.
@@ -121,31 +121,64 @@ class RobotContainer:
     def configureAutos(self):
         self.chosenAuto = wpilib.SendableChooser()
         # you can also set the default option, if needed
-        self.chosenAuto.setDefaultOption("trajectory example", self.getAutonomousTrajectoryExample)
-        self.chosenAuto.addOption("left blue", self.getAutonomousLeftBlue)
-        self.chosenAuto.addOption("left red", self.getAutonomousLeftRed)
+        self.chosenAuto.setDefaultOption("center auto", self.centerAuto)
+        self.chosenAuto.addOption("jc left", self.leftAuto)
+        self.chosenAuto.addOption("jc null", self.rightAuto)
+
+        #self.chosenAuto.setDefaultOption("trajectory example", self.getAutonomousTrajectoryExample)
+        #self.chosenAuto.addOption("left blue", self.getAutonomousLeftBlue)
+        #self.chosenAuto.addOption("left red", self.getAutonomousLeftRed)
+
         wpilib.SmartDashboard.putData("Chosen Auto", self.chosenAuto)
 
-    def approachAprilTagInSight(self):
+    def centerAuto(self):
+        setStart = ResetXY(x=7.025, y=4.025, headingDegrees=180, drivetrain=self.robotDrive)
+        return SequentialCommandGroup(setStart, self.approachAprilTagAndShoot(pipeline=2))
+
+    def leftAuto(self):
+        setStart = ResetXY(x=6.98, y=6.177, headingDegrees=-142, drivetrain=self.robotDrive)
+        return SequentialCommandGroup(setStart, self.approachAprilTagAndShoot(pipeline=1))
+
+    def rightAuto(self):
+        setStart = ResetXY(x=6.98, y=8.05-6.177, headingDegrees=+142, drivetrain=self.robotDrive)
+        return SequentialCommandGroup(setStart, self.approachAprilTagAndShoot(pipeline=3))
+
+    def approachAprilTagAndShoot(self, pipeline=0):
         from commands.approach import ApproachTag
+
+        # our Limelight has 4 pipelines:
+        #   0 = any tag
+        #   1 = tags 20,11
+        #   2 = tags 21,10
+        #   3 = tags 22,9
 
         def roundToMultipleOf60():
             return 60 * round(self.robotDrive.getHeading().degrees() / 60)
+
+        from commands.setcamerapipeline import SetCameraPipeline
+        from commands.motorcommand import Run
+
+        setCameraPipeline = SetCameraPipeline(self.camera, pipeline)
+
+        shoot = Run(speed=-0.1, motor=self.motor)
+
 
         approach = ApproachTag(
             self.camera,
             self.robotDrive,
             specificHeadingDegrees=roundToMultipleOf60,
+            settings={"GainTran":0.5},
             speed=1.0,
-            pushForwardSeconds=0.05,
-            finalApproachObjSize=8,
+            pushForwardSeconds=0.3,
+            finalApproachObjSize=15,
         )  # tuning this at speed=0.5, should be comfortable setting speed=1.0 instead
 
         # or you can do this, if you want to score the coral 15 centimeters to the right and two centimeters back from the AprilTag
         # stepToSide = SwerveToSide(drivetrain=self.robotDrive, metersToTheLeft=-0.15, metersBackwards=0.02, speed=0.2)
         # alignToScore = approach.andThen(stepToSide)
 
-        return approach
+        return SequentialCommandGroup(setCameraPipeline, approach, shoot.withTimeout(2.0) )
+
 
     def getAutonomousLeftBlue(self):
         setStartPose = ResetXY(x=0.783, y=6.686, headingDegrees=+60, drivetrain=self.robotDrive)

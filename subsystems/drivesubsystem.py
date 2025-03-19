@@ -191,6 +191,7 @@ class DriveSubsystem(Subsystem):
         :param rateLimit:     Whether to enable rate limiting for smoother control.
         :param square:        Whether to square the inputs (useful for manual control)
         """
+        rot = -rot
 
         if square:
             rot = rot * abs(rot)
