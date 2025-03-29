@@ -19,6 +19,7 @@ from subsystems.drivesubsystem import DriveSubsystem
 from subsystems.motor import Motor
 
 from commands.reset_xy import ResetXY, ResetSwerveFront
+from commands.swervetopoint import SwerveMove
 
 class RobotContainer:
     """
@@ -121,8 +122,8 @@ class RobotContainer:
     def configureAutos(self):
         self.chosenAuto = wpilib.SendableChooser()
         # you can also set the default option, if needed
-        self.chosenAuto.setDefaultOption("center auto", self.centerAuto)
-        self.chosenAuto.addOption("jc left", self.leftAuto)
+        self.chosenAuto.addOption("center auto", self.centerAuto)
+        self.chosenAuto.setDefaultOption("jc left", self.leftAuto)
         self.chosenAuto.addOption("jc null", self.rightAuto)
 
         #self.chosenAuto.setDefaultOption("trajectory example", self.getAutonomousTrajectoryExample)
@@ -137,11 +138,13 @@ class RobotContainer:
 
     def leftAuto(self):
         setStart = ResetXY(x=6.98, y=6.177, headingDegrees=-142, drivetrain=self.robotDrive)
-        return SequentialCommandGroup(setStart, self.approachAprilTagAndShoot(pipeline=1))
+        forward1Meter = SwerveMove(metersBackwards=-1.0, metersToTheLeft=0, speed=1.0, drivetrain=self.robotDrive)
+        return SequentialCommandGroup(setStart, forward1Meter, self.approachAprilTagAndShoot(pipeline=1))
 
     def rightAuto(self):
         setStart = ResetXY(x=6.98, y=8.05-6.177, headingDegrees=+142, drivetrain=self.robotDrive)
-        return SequentialCommandGroup(setStart, self.approachAprilTagAndShoot(pipeline=3))
+        forward1Meter = SwerveMove(metersBackwards=-1.0, metersToTheLeft=0, speed=1.0, drivetrain=self.robotDrive)
+        return SequentialCommandGroup(setStart, forward1Meter, self.approachAprilTagAndShoot(pipeline=3))
 
     def approachAprilTagAndShoot(self, pipeline=0):
         from commands.approach import ApproachTag
